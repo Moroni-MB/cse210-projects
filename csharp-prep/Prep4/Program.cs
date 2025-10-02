@@ -15,6 +15,7 @@ class Program
         {
             Console.Write("Enter number: ");
             int user_number = int.Parse(Console.ReadLine());
+            
             if (user_number != 0) 
             {
                 user_list.Add(user_number);
