@@ -34,7 +34,7 @@ public class Journal
 
         foreach (Entry entry in _entries)
         {
-            lines.Add($"{entry._date}|{entry._text}");
+            lines.Add($"{entry._date}|{entry._prompt}|{entry._text}");
         }
 
         File.AppendAllLines(filename, lines);
@@ -51,11 +51,12 @@ public class Journal
             foreach (string line in lines)
             {
                 string[] parts = line.Split('|');
-                if (parts.Length == 2)
+                if (parts.Length == 3)
                 {
                     Entry entry = new Entry();
                     entry._date = parts[0];
-                    entry._text = parts[1];
+                    entry._prompt = parts[1];
+                    entry._text = parts[2];
                     _entries.Add(entry);
                 }
             }
