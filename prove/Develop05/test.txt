@@ -1,0 +1,2 @@
+100
+Simple Goal|Go running|Run 3 miles today|100|True
