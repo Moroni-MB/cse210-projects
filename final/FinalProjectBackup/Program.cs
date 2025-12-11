@@ -14,7 +14,7 @@ class Program
 
         CommandRouter router = new CommandRouter(manager);
 
-        Console.WriteLine("JARVIS Console Test");
+        Console.WriteLine("JARVIS Console (Type exit to quit)");
         Console.WriteLine("-------------------");
 
         while (true)

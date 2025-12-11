@@ -1,48 +1,81 @@
-using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using JarvisModules.Modules;
+using Avalonia.Input;
+using JarvisGUI.Models;
+using System.Collections.ObjectModel;
+
+using JarvisModules.Modules;  // <-- core logic (AssistantManager, CommandRouter, modules)
 
 namespace JarvisGUI;
 
 public partial class MainWindow : Window
 {
-    private AssistantManager _manager;
+    private ObservableCollection<ChatBubble> ChatMessages { get; } =
+        new ObservableCollection<ChatBubble>();
+
+    private readonly AssistantManager _manager;
+    private readonly CommandRouter _router;
 
     public MainWindow()
     {
         InitializeComponent();
 
-        _manager = new AssistantManager();
+        // Connect ItemsControl to message list
+        ChatList.ItemsSource = ChatMessages;
 
-        // Register all modules (your actual classes)
+        // Register modules
+        _manager = new AssistantManager();
         _manager.RegisterModule(new TimeModule());
         _manager.RegisterModule(new ToDoModule());
-        _manager.RegisterModule(new NotesModule());
         _manager.RegisterModule(new CalculatorModule());
+        _manager.RegisterModule(new NotesModule());
         _manager.RegisterModule(new SearchModule());
 
-        RunButton.Click += OnRunClicked;
+        _router = new CommandRouter(_manager);
     }
 
-    private void OnRunClicked(object? sender, RoutedEventArgs e)
+    // BUTTON CLICK -> sends message
+    private void SendButton_Click(object? sender, RoutedEventArgs e)
     {
-        string input = UserInputBox.Text ?? "";
+        ProcessInput();
+    }
 
-        if (string.IsNullOrWhiteSpace(input))
+    // PRESSING ENTER -> also sends message
+    private void InputBox_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
         {
-            OutputBox.Text = "Please enter a command.";
-            return;
+            ProcessInput();     // Call the real method
+            e.Handled = true;   // Prevent newline beep
         }
+    }
 
-        // Extract module name (first word)
-        string[] parts = input.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+    // Handles sending + receiving messages
+    private void ProcessInput()
+    {
+        string input = InputBox.Text?.Trim() ?? "";
+        if (string.IsNullOrWhiteSpace(input))
+            return;
 
-        string moduleName = parts[0];  // e.g. "time"
-        string? moduleInput = parts.Length > 1 ? parts[1] : null;
+        // Add user bubble
+        ChatMessages.Add(new ChatBubble
+        {
+            Message = input,
+            Alignment = "Right",
+            Background = "#2B7FFF"  // Light blue
+        });
 
-        string result = _manager.ExecuteModule(moduleName, moduleInput);
+        InputBox.Text = "";
 
-        OutputBox.Text = result;
+        // Route through JARVIS core
+        string response = _router.Route(input);
+
+        // Add JARVIS bubble
+        ChatMessages.Add(new ChatBubble
+        {
+            Message = response,
+            Alignment = "Left",
+            Background = "#333333" // Dark bubble
+        });
     }
 }
